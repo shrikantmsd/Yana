@@ -1,0 +1,142 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+   YANA MOTORS OS design tokens
+   Change colours / fonts here and the whole app follows.
+--------------------------------------------------------------------------- */
+@theme {
+  --font-sans: "Figtree Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Barlow Semi Condensed", "Figtree Variable", ui-sans-serif, system-ui, sans-serif;
+
+  --color-canvas: #f8f6f2;
+  --color-line: #e9e5dd;
+  --color-line-strong: #d9d3c8;
+
+  /* YANA MOTORS red */
+  --color-brand-50: #fff3f3;
+  --color-brand-100: #fde4e5;
+  --color-brand-200: #fbc5c8;
+  --color-brand-300: #f79aa0;
+  --color-brand-400: #ef6169;
+  --color-brand-500: #e5333b;
+  --color-brand-600: #d3202d;
+  --color-brand-700: #af1a25;
+  --color-brand-800: #8b1720;
+  --color-brand-900: #6e141c;
+
+  /* Charcoal */
+  --color-ink-50: #f7f7f8;
+  --color-ink-100: #eff0f2;
+  --color-ink-200: #e0e2e6;
+  --color-ink-300: #c3c6cc;
+  --color-ink-400: #9ca0a9;
+  --color-ink-500: #737883;
+  --color-ink-600: #545962;
+  --color-ink-700: #3b3f47;
+  --color-ink-800: #2a2d33;
+  --color-ink-900: #1b1d21;
+  --color-ink-950: #121316;
+
+  /* Positive / warning / critical / AI / info */
+  --color-ok-50: #eaf7ef;
+  --color-ok-100: #d3f0de;
+  --color-ok-200: #a9e2bf;
+  --color-ok-500: #1fa35a;
+  --color-ok-600: #178a4a;
+  --color-ok-700: #12703d;
+
+  --color-warn-50: #fff5e0;
+  --color-warn-100: #ffe9b8;
+  --color-warn-200: #ffd680;
+  --color-warn-500: #f5a30b;
+  --color-warn-600: #d98206;
+  --color-warn-700: #a85f06;
+
+  --color-danger-50: #fdecec;
+  --color-danger-100: #fbd5d5;
+  --color-danger-200: #f6a9a9;
+  --color-danger-500: #dc2626;
+  --color-danger-600: #c81e1e;
+  --color-danger-700: #a31616;
+
+  --color-ai-50: #f3edfe;
+  --color-ai-100: #e6dbfd;
+  --color-ai-200: #cdb5fb;
+  --color-ai-500: #7c3aed;
+  --color-ai-600: #6d28d9;
+  --color-ai-700: #5b21b6;
+
+  --color-info-50: #eaf2fe;
+  --color-info-100: #d4e4fc;
+  --color-info-200: #a8c8f9;
+  --color-info-500: #2f6fe4;
+  --color-info-600: #2559c2;
+  --color-info-700: #1e479b;
+
+  --shadow-card: 0 1px 0 rgb(27 29 33 / 0.03), 0 1px 3px rgb(27 29 33 / 0.05);
+  --shadow-pop: 0 14px 34px -10px rgb(27 29 33 / 0.28), 0 2px 8px rgb(27 29 33 / 0.08);
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-padding-top: 7rem;
+  }
+  body {
+    background: var(--color-canvas);
+    color: var(--color-ink-800);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    color: var(--color-ink-900);
+    letter-spacing: -0.005em;
+  }
+  button, [role="button"], summary { cursor: pointer; }
+  button:disabled { cursor: not-allowed; }
+  :focus-visible {
+    outline: 2px solid var(--color-brand-500);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+  ::selection { background: var(--color-brand-100); }
+  input, select, textarea { font: inherit; }
+}
+
+@layer utilities {
+  .num { font-family: var(--font-display); font-variant-numeric: tabular-nums; letter-spacing: 0; }
+  .hazard {
+    background-image: repeating-linear-gradient(-45deg, var(--color-warn-500) 0 7px, var(--color-ink-900) 7px 14px);
+  }
+  .thin-scroll { scrollbar-width: thin; scrollbar-color: var(--color-line-strong) transparent; }
+  .thin-scroll::-webkit-scrollbar { height: 8px; width: 8px; }
+  .thin-scroll::-webkit-scrollbar-thumb { background: var(--color-line-strong); border-radius: 8px; }
+  .anim-fade { animation: fade-in 0.15s ease-out both; }
+  .anim-pop { animation: pop-in 0.16s ease-out both; }
+  .anim-slide-r { animation: slide-in-r 0.22s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+  .anim-slide-l { animation: slide-in-l 0.22s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+  .anim-toast { animation: toast-in 0.22s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+  .skeleton {
+    background: linear-gradient(90deg, var(--color-ink-100) 0%, var(--color-ink-50) 50%, var(--color-ink-100) 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.3s linear infinite;
+  }
+}
+
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes pop-in { from { opacity: 0; transform: translateY(-4px) scale(0.98); } to { opacity: 1; transform: none; } }
+@keyframes slide-in-r { from { transform: translateX(28px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes slide-in-l { from { transform: translateX(-28px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes toast-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+
+@media print {
+  aside, header, .no-print { display: none !important; }
+}
