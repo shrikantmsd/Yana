@@ -63,6 +63,8 @@ export type DeliveryStatus = 'Pending' | 'In Transit' | 'Out for Delivery' | 'De
 
 export interface OrderItem {
   id: ID;
+  /** the Order this line belongs to — explicit so this maps to an "order_items.order_id" foreign key later */
+  orderId: ID;
   sku: string;
   productName: string;
   quantity: number;

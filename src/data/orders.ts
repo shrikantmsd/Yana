@@ -162,6 +162,7 @@ export function generateOrders(customers: Customer[], products: Product[], stopB
       const tax = Math.round((net * p.gstRate) / 100);
       return {
         id: `${id}-L${idx + 1}`,
+        orderId: id,
         sku: p.sku,
         productName: displayName(p),
         quantity: l.qty,

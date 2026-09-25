@@ -11,7 +11,7 @@ import { DonutChart } from '@/components/charts/donut-chart';
 import { RANGE_OPTIONS, resolveRange, type RangeKey } from '@/lib/ranges';
 import {
   revenueTrend, salesTrend, leadFunnel, ordersByCategory, customerGrowth, repeatPurchaseTrend,
-  reorderOpportunityTrend, complaintTrend, csatTrend, geographicDistribution,
+  reorderOpportunityTrend, complaintTrend, csatTrend, geographicDistribution, countBy, sumBy,
 } from '@/lib/kpi';
 import { orderNet } from '@/lib/order-flow';
 import { formatCompactINR, formatPct } from '@/lib/format';
@@ -54,7 +54,7 @@ export default function ReportsPage() {
           {tab === 'sales' && (
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
               <ChartCard title="Sales Trend" subtitle="Value of deals won"><TrendChart data={salesTrend(d, range)} color="#2f6fe4" formatter={formatCompactINR} /></ChartCard>
-              <ChartCard title="Deals by Stage"><BarChartCard data={Object.entries(d.deals.reduce((m: Record<string, number>, x) => ((m[x.stage] = (m[x.stage] ?? 0) + 1), m), {})).map(([label, value]) => ({ label, value }))} multiColor horizontal /></ChartCard>
+              <ChartCard title="Deals by Stage"><BarChartCard data={countBy(d.deals, (x) => x.stage)} multiColor horizontal /></ChartCard>
             </div>
           )}
           {tab === 'leads' && (
@@ -65,7 +65,7 @@ export default function ReportsPage() {
           )}
           {tab === 'orders' && (
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-              <ChartCard title="Orders by Status"><BarChartCard data={Object.entries(d.orders.reduce((m: Record<string, number>, o) => ((m[o.status] = (m[o.status] ?? 0) + 1), m), {})).map(([label, value]) => ({ label, value }))} multiColor horizontal /></ChartCard>
+              <ChartCard title="Orders by Status"><BarChartCard data={countBy(d.orders, (o) => o.status)} multiColor horizontal /></ChartCard>
               <ChartCard title="Orders by City"><BarChartCard data={geographicDistribution(d).map(({ label, value: c }) => ({ label, value: d.orders.filter((o) => d.customers.find((cu) => cu.id === o.customerId)?.city === label).length }))} horizontal color="#2f6fe4" /></ChartCard>
             </div>
           )}
@@ -89,19 +89,19 @@ export default function ReportsPage() {
           {tab === 'reorders' && (
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
               <ChartCard title="Reorder Opportunities by Week"><BarChartCard data={reorderOpportunityTrend(d)} color="#f5a30b" /></ChartCard>
-              <ChartCard title="Recommended Actions"><DonutChart data={Object.entries(d.reorderOpportunities.reduce((m: Record<string, number>, r) => ((m[r.recommendedAction] = (m[r.recommendedAction] ?? 0) + 1), m), {})).map(([label, value]) => ({ label, value }))} centerLabel="Opportunities" /></ChartCard>
+              <ChartCard title="Recommended Actions"><DonutChart data={countBy(d.reorderOpportunities, (r) => r.recommendedAction)} centerLabel="Opportunities" /></ChartCard>
             </div>
           )}
           {tab === 'support' && (
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
               <ChartCard title="Tickets by Category"><BarChartCard data={TICKET_CATEGORIES.map((c) => ({ label: c, value: d.tickets.filter((t) => t.category === c).length })).filter((x) => x.value > 0)} horizontal multiColor height={300} /></ChartCard>
-              <ChartCard title="Tickets by Status"><DonutChart data={Object.entries(d.tickets.reduce((m: Record<string, number>, t) => ((m[t.status] = (m[t.status] ?? 0) + 1), m), {})).map(([label, value]) => ({ label, value }))} centerLabel="Tickets" /></ChartCard>
+              <ChartCard title="Tickets by Status"><DonutChart data={countBy(d.tickets, (t) => t.status)} centerLabel="Tickets" /></ChartCard>
             </div>
           )}
           {tab === 'complaints' && (
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
               <ChartCard title="Complaint Trend" subtitle={range.label}><TrendChart data={complaintTrend(d, range)} color="#dc2626" /></ChartCard>
-              <ChartCard title="Complaints by Category"><BarChartCard data={Object.entries(d.complaints.reduce((m: Record<string, number>, c) => ((m[c.category] = (m[c.category] ?? 0) + 1), m), {})).map(([label, value]) => ({ label, value }))} horizontal multiColor height={300} /></ChartCard>
+              <ChartCard title="Complaints by Category"><BarChartCard data={countBy(d.complaints, (c) => c.category)} horizontal multiColor height={300} /></ChartCard>
             </div>
           )}
           {tab === 'csat' && (
@@ -112,24 +112,24 @@ export default function ReportsPage() {
           )}
           {tab === 'whatsapp' && (
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-              <ChartCard title="Conversations by Intent"><DonutChart data={Object.entries(d.conversations.reduce((m: Record<string, number>, c) => ((m[c.intent] = (m[c.intent] ?? 0) + 1), m), {})).map(([label, value]) => ({ label, value }))} centerLabel="Conversations" /></ChartCard>
+              <ChartCard title="Conversations by Intent"><DonutChart data={countBy(d.conversations, (c) => c.intent)} centerLabel="Conversations" /></ChartCard>
               <ChartCard title="AI vs Human Handling"><BarChartCard data={[{ label: 'AI', value: d.conversations.filter((c) => c.handler === 'AI').length }, { label: 'Human', value: d.conversations.filter((c) => c.handler === 'Human').length }]} multiColor /></ChartCard>
             </div>
           )}
           {tab === 'calls' && (
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-              <ChartCard title="Calls by Type"><BarChartCard data={Object.entries(d.calls.reduce((m: Record<string, number>, c) => ((m[c.callType] = (m[c.callType] ?? 0) + 1), m), {})).map(([label, value]) => ({ label, value }))} horizontal multiColor height={300} /></ChartCard>
-              <ChartCard title="Call Outcomes by Status"><DonutChart data={Object.entries(d.calls.reduce((m: Record<string, number>, c) => ((m[c.status] = (m[c.status] ?? 0) + 1), m), {})).map(([label, value]) => ({ label, value }))} centerLabel="Calls" /></ChartCard>
+              <ChartCard title="Calls by Type"><BarChartCard data={countBy(d.calls, (c) => c.callType)} horizontal multiColor height={300} /></ChartCard>
+              <ChartCard title="Call Outcomes by Status"><DonutChart data={countBy(d.calls, (c) => c.status)} centerLabel="Calls" /></ChartCard>
             </div>
           )}
           {tab === 'campaigns' && (
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
               <ChartCard title="Revenue by Campaign"><BarChartCard data={d.campaigns.filter((c) => c.revenue > 0).map((c) => ({ label: c.name, value: c.revenue })).sort((a, b) => b.value - a.value)} horizontal color="#e5333b" formatter={formatCompactINR} height={280} /></ChartCard>
-              <ChartCard title="Sent by Channel"><DonutChart data={Object.entries(d.campaigns.reduce((m: Record<string, number>, c) => ((m[c.channel] = (m[c.channel] ?? 0) + c.sent), m), {})).map(([label, value]) => ({ label, value }))} centerLabel="Sent" /></ChartCard>
+              <ChartCard title="Sent by Channel"><DonutChart data={sumBy(d.campaigns, (c) => c.channel, (c) => c.sent)} centerLabel="Sent" /></ChartCard>
             </div>
           )}
           {tab === 'referrals' && (
-            <ChartCard title="Referral Status Breakdown"><DonutChart data={Object.entries(d.referrals.reduce((m: Record<string, number>, r) => ((m[r.status] = (m[r.status] ?? 0) + 1), m), {})).map(([label, value]) => ({ label, value }))} centerLabel="Referrals" /></ChartCard>
+            <ChartCard title="Referral Status Breakdown"><DonutChart data={countBy(d.referrals, (r) => r.status)} centerLabel="Referrals" /></ChartCard>
           )}
         </div>
       </Card>

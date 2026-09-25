@@ -63,6 +63,12 @@ export type LeadSource = (typeof LEAD_SOURCES)[number];
 export interface Lead {
   id: ID;
   name: string;
+  /**
+   * The prospect's business name, as free text — NOT a foreign key to
+   * Company.id. A lead is, by definition, a business that isn't a Company
+   * record yet. Phase 1 has no "Convert Lead" action, so this never gets
+   * linked up automatically; see convertedCustomerId below.
+   */
   company: string;
   phone: string;
   email: string;
@@ -79,6 +85,13 @@ export interface Lead {
   estimatedValue: number;
   notes: string;
   lostReason?: string;
+  /**
+   * Set once a lead becomes a real Customer record. Intentionally left
+   * unset by every demo "Won" lead in Phase 1, since there's no real
+   * conversion event to populate it from yet — a future "Convert Lead"
+   * action (Phase 2) should create the Customer/Company and set this
+   * field at that moment, rather than this being faked in demo data.
+   */
   convertedCustomerId?: ID;
   activity: TimelineEvent[];
 }

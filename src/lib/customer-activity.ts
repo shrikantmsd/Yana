@@ -18,6 +18,26 @@ export function buildCustomerActivity(customerId: string, d: DemoData): Timeline
 
 export interface JourneyStep { label: string; done: boolean }
 
+/**
+ * Labels for the Customer 360 lifecycle stepper.
+ *
+ * This is intentionally the THIRD, most granular of three separate lifecycle
+ * lists in the codebase — each is correct for its own screen, not a
+ * duplicate to be merged:
+ *   1. LIFECYCLE_STAGES (types/common.ts)   — the 17-stage macro lifecycle
+ *      shown as the strip on every module's page header.
+ *   2. SUCCESS_STAGES (types/engagement.ts) — the 11-stage post-delivery
+ *      journey used only by the Customer Success board.
+ *   3. CUSTOMER_360_JOURNEY_STAGES (here)   — this 12-step per-customer
+ *      timeline, used only on a single customer's own profile page.
+ * If a fourth breakdown is ever needed, name and export it the same way
+ * rather than inlining another ad-hoc array.
+ */
+export const CUSTOMER_360_JOURNEY_STAGES = [
+  'Lead', 'Conversation', 'Qualified', 'Sale', 'Order', 'Dispatch',
+  'Delivery', 'Usage Check', 'Feedback', 'Reorder', 'Upsell / Cross-sell', 'Referral',
+] as const;
+
 export function buildCustomerJourney(customerId: string, d: DemoData): JourneyStep[] {
   const orders = d.orders.filter((o) => o.customerId === customerId);
   const live = orders.filter((o) => o.status !== 'Cancelled');
@@ -30,18 +50,19 @@ export function buildCustomerJourney(customerId: string, d: DemoData): JourneySt
   const crossSold = d.growthOpportunities.some((g) => g.customerId === customerId && g.kind === 'Cross-sell');
   const referred = d.referrals.some((r) => r.referrerId === customerId);
 
-  return [
-    { label: 'Lead', done: true },
-    { label: 'Conversation', done: hasConversation },
-    { label: 'Qualified', done: live.length > 0 || hasConversation },
-    { label: 'Sale', done: live.length > 0 },
-    { label: 'Order', done: live.length > 0 },
-    { label: 'Dispatch', done: dispatched },
-    { label: 'Delivery', done: delivered },
-    { label: 'Usage Check', done: delivered },
-    { label: 'Feedback', done: hasFeedback },
-    { label: 'Reorder', done: reordered },
-    { label: 'Upsell / Cross-sell', done: upsold || crossSold },
-    { label: 'Referral', done: referred },
-  ];
+  const done: Record<(typeof CUSTOMER_360_JOURNEY_STAGES)[number], boolean> = {
+    Lead: true,
+    Conversation: hasConversation,
+    Qualified: live.length > 0 || hasConversation,
+    Sale: live.length > 0,
+    Order: live.length > 0,
+    Dispatch: dispatched,
+    Delivery: delivered,
+    'Usage Check': delivered,
+    Feedback: hasFeedback,
+    Reorder: reordered,
+    'Upsell / Cross-sell': upsold || crossSold,
+    Referral: referred,
+  };
+  return CUSTOMER_360_JOURNEY_STAGES.map((label) => ({ label, done: done[label] }));
 }

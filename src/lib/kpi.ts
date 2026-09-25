@@ -171,3 +171,49 @@ export function customerLifetimeStats(d: Pick<DemoData, 'orders'>, customerId: s
     topProducts,
   };
 }
+
+/**
+ * Counts (or sums) items by a key, for simple "breakdown by X" charts.
+ * Pulled out of report components so the UI layer only says *what* to
+ * group by, not *how* to group it — keeps the counting logic in one
+ * place, ready to become a SQL "group by" once there's a real database.
+ */
+export function countBy<T>(items: readonly T[], keyOf: (item: T) => string): { label: string; value: number }[] {
+  const m = new Map<string, number>();
+  for (const item of items) {
+    const k = keyOf(item);
+    m.set(k, (m.get(k) ?? 0) + 1);
+  }
+  return [...m.entries()].map(([label, value]) => ({ label, value }));
+}
+
+export function sumBy<T>(items: readonly T[], keyOf: (item: T) => string, valueOf: (item: T) => number): { label: string; value: number }[] {
+  const m = new Map<string, number>();
+  for (const item of items) {
+    const k = keyOf(item);
+    m.set(k, (m.get(k) ?? 0) + valueOf(item));
+  }
+  return [...m.entries()].map(([label, value]) => ({ label, value }));
+}
+
+export interface CompanySummary {
+  revenue: number;
+  orderCount: number;
+  lastOrderAt: string | null;
+  openTickets: number;
+  openComplaints: number;
+}
+
+/** Per-company rollup used by the Companies list — one place, instead of inline in the page. */
+export function companySummaries(d: Pick<DemoData, 'companies' | 'orders' | 'tickets' | 'complaints'>): Map<string, CompanySummary> {
+  return new Map(d.companies.map((c) => {
+    const os = d.orders.filter((o) => o.companyId === c.id && o.status !== 'Cancelled');
+    return [c.id, {
+      revenue: os.reduce((s, o) => s + orderNet(o), 0),
+      orderCount: os.length,
+      lastOrderAt: os.length ? os.reduce((a, b) => (+new Date(a.orderedAt) > +new Date(b.orderedAt) ? a : b)).orderedAt : null,
+      openTickets: d.tickets.filter((t) => t.companyId === c.id && t.status !== 'Resolved' && t.status !== 'Closed').length,
+      openComplaints: d.complaints.filter((x) => x.companyId === c.id && x.stage !== 'Closed').length,
+    }];
+  }));
+}

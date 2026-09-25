@@ -11,7 +11,7 @@ import { StatusBadge } from '@/components/ui/badge';
 import { Avatar } from '@/components/ui/avatar';
 import { PersonName } from '@/components/shared/entity-cells';
 import { formatCompactINR, formatDate } from '@/lib/format';
-import { orderNet } from '@/lib/order-flow';
+import { companySummaries } from '@/lib/kpi';
 import { CITIES, CUSTOMER_TYPES, HEALTH_STATES, type Company } from '@/types';
 
 export default function CompaniesPage() {
@@ -22,16 +22,7 @@ export default function CompaniesPage() {
   const [city, setCity] = useState('');
   const [health, setHealth] = useState('');
 
-  const summary = useMemo(() => new Map(companies.map((c) => {
-    const os = orders.filter((o) => o.companyId === c.id && o.status !== 'Cancelled');
-    return [c.id, {
-      revenue: os.reduce((s, o) => s + orderNet(o), 0),
-      orderCount: os.length,
-      lastOrder: os.length ? os.reduce((a, b) => (+new Date(a.orderedAt) > +new Date(b.orderedAt) ? a : b)).orderedAt : null,
-      openTickets: tickets.filter((t) => t.companyId === c.id && t.status !== 'Resolved' && t.status !== 'Closed').length,
-      openComplaints: complaints.filter((x) => x.companyId === c.id && x.stage !== 'Closed').length,
-    }];
-  })), [companies, orders, tickets, complaints]);
+  const summary = useMemo(() => companySummaries({ companies, orders, tickets, complaints }), [companies, orders, tickets, complaints]);
 
   const rows = useMemo(() => companies.filter((c) => {
     if (type && c.customerType !== type) return false;
